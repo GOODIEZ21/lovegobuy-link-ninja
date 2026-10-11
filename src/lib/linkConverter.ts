@@ -224,3 +224,32 @@ export function convertLink(rawUrl: string, agentName: string, template?: string
   // Brak reguły dla agenta — nie psujemy linku.
   return original;
 }
+
+/** Klucz agenta niezależny od wielkości liter i literówek (Kakaobuy = KakoBuy, Litbuy = LoveGoBuy). */
+export function agentKey(name: string): string {
+  const k = normalizeAgent(name ?? "");
+  if (k === "kakaobuy") return "kakobuy";
+  if (k === "litbuy") return "lovegobuy";
+  return k;
+}
+
+/**
+ * Link do PRODUKTU u danego agenta. Dopasowuje nazwę agenta bez względu na pisownię,
+ * a gdy brak gotowego linku — konwertuje inny link źródłowy tego produktu.
+ * Zwraca "" gdy nie da się zbudować linku produktowego (wtedy dopiero link rejestracji).
+ */
+export function productAgentLink(
+  p: { agent_links?: Record<string, string> | null; store_url?: string | null; qc_url?: string | null },
+  agentName: string,
+): string {
+  const links = p.agent_links ?? {};
+  const want = agentKey(agentName);
+  const direct = Object.entries(links).find(([k, v]) => agentKey(k) === want && v)?.[1];
+  if (direct) return want === "lovegobuy" ? convertLink(direct, "LoveGoBuy") || direct : direct;
+  for (const src of [p.store_url, ...Object.values(links), p.qc_url]) {
+    if (!src || !extractSourceLink(src)) continue;
+    const conv = convertLink(src, agentName);
+    if (conv && conv !== src) return conv;
+  }
+  return "";
+}

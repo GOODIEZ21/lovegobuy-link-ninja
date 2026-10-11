@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { safeStorage, type Product } from "@/lib/store";
-import { convertLink } from "@/lib/linkConverter";
+import { convertLink, agentKey } from "@/lib/linkConverter";
 import { productWeightKg, roundHalfKg } from "@/lib/weight";
 
 export type CartItem = {
@@ -24,7 +24,6 @@ export function productLink(p: Product): string {
   return p.store_url || agent || p.qc_url || "";
 }
 
-const agentKey = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
 /** Link dla pozycji koszyka u wybranego agenta (null = domyślny link). */
 export function cartItemLink(item: CartItem, agentName: string | null): string {
