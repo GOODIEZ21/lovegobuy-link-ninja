@@ -113,18 +113,54 @@ export const secureMutate = createServerFn({ method: "POST" })
 
     if (data.table === "sellers" && session.role === "admin" && data.op !== "delete") {
       const input = (data.values ?? {}) as Record<string, unknown>;
-      const { password_hash: _password, user_id: _owner, ...safe } = input;
-      if (data.op === "insert" || data.op === "upsert") {
-        const email = String(safe['username'] ?? "").trim();
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { error: "Podaj adres e-mail sprzedawcy." };
-        const existing = safe['id'] ? await supabaseAdmin.from("sellers").select("id,user_id").eq("id", String(safe['id'])).maybeSingle() : null;
+      const { password_hash: _password, user_id: _owner, password: rawPassword, ...safe } = input;
+      const password = String(rawPassword ?? "");
+      if (password && password.length < 8) return { error: "Hasło musi mieć minimum 8 znaków." };
+      const { sellerLoginEmail } = await import("@/lib/sellerLogin");
+      const setAccount = async (login: string, currentUserId: string | null) => {
+        const email = sellerLoginEmail(login);
+        if (currentUserId) {
+          const { error } = await supabaseAdmin.auth.admin.updateUserById(currentUserId, { email, password: password || undefined, email_confirm: true });
+          return error ? null : currentUserId;
+        }
+        const { data: created, error } = await supabaseAdmin.auth.admin.createUser({ email, password, email_confirm: true });
+        if (created?.user) return created.user.id;
+        if (!error) return null;
+        // Konto z tym loginem już istnieje — ustawiamy nowe hasło.
+        const { data: list } = await supabaseAdmin.auth.admin.listUsers({ perPage: 1000 });
+        const found = list?.users.find((u) => u.email?.toLowerCase() === email);
+        if (!found) return null;
+        const { error: upd } = await supabaseAdmin.auth.admin.updateUserById(found.id, { password, email_confirm: true });
+        return upd ? null : found.id;
+      };
+      if (data.op === "insert" || data.op === "upsert" || data.op === "update") {
+        const login = String(safe['username'] ?? "").trim().toLowerCase();
+        if (!/^[a-z0-9._@+-]{3,80}$/.test(login)) return { error: "Login: min. 3 znaki, bez spacji." };
+        safe['username'] = login;
+        const sellerRowId = data.id ?? (safe['id'] ? String(safe['id']) : null);
+        const existing = sellerRowId ? await supabaseAdmin.from("sellers").select("id,user_id").eq("id", sellerRowId).maybeSingle() : null;
         if (!existing?.data) {
-          const { data: invited, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email);
-          if (inviteError || !invited.user) return { error: "Nie udało się wysłać zaproszenia. Sprawdź adres e-mail i wysyłanie wiadomości w Cloud." };
-          const { data: seller, error: sellerError } = await supabaseAdmin.from("sellers").insert({ ...safe, name: String(safe['name'] ?? ""), slug: String(safe['slug'] ?? ""), user_id: invited.user.id }).select("id").single();
+          if (!password) return { error: "Ustaw hasło dla sprzedawcy." };
+          const userId = await setAccount(login, null);
+          if (!userId) return { error: "Nie udało się utworzyć konta sprzedawcy." };
+          const { data: seller, error: sellerError } = await supabaseAdmin.from("sellers").insert({ ...safe, name: String(safe['name'] ?? ""), slug: String(safe['slug'] ?? ""), user_id: userId }).select("id").single();
           if (sellerError || !seller) return { error: "Nie udało się zapisać sklepu." };
-          const { error: roleError } = await supabaseAdmin.from("user_roles").insert({ user_id: invited.user.id, seller_id: seller.id, role: "seller" });
+          await supabaseAdmin.from("user_roles").delete().eq("user_id", userId).eq("role", "seller");
+          const { error: roleError } = await supabaseAdmin.from("user_roles").insert({ user_id: userId, seller_id: seller.id, role: "seller" });
           return { error: roleError ? "Nie udało się nadać dostępu do sklepu." : null };
+        }
+        const oldUserId = (existing.data as { user_id: string | null }).user_id;
+        if (password || !oldUserId) {
+          if (!password) return { error: "Ustaw hasło dla sprzedawcy." };
+          const userId = await setAccount(login, oldUserId);
+          if (!userId) return { error: "Nie udało się zmienić loginu/hasła." };
+          safe['user_id'] = userId;
+          if (!oldUserId) {
+            await supabaseAdmin.from("user_roles").delete().eq("user_id", userId).eq("role", "seller");
+            await supabaseAdmin.from("user_roles").insert({ user_id: userId, seller_id: existing.data.id, role: "seller" });
+          }
+        } else {
+          await supabaseAdmin.auth.admin.updateUserById(oldUserId, { email: sellerLoginEmail(login), email_confirm: true });
         }
       }
       data.values = safe;
