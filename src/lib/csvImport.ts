@@ -1,3 +1,4 @@
+import { convertLink } from "@/lib/linkConverter";
 /** Prosty parser CSV / TSV (obsługuje cudzysłowy i wielolinijkowe pola). */
 export function parseDelimited(text: string): string[][] {
   const src = text.replace(/\r\n?/g, "\n").trim();
@@ -122,7 +123,15 @@ function links(value: string): Record<string, string> {
     return Object.fromEntries(
       Object.entries(parsed as Record<string, unknown>)
         .filter(([, url]) => typeof url === "string" && url.trim())
-        .map(([agent, url]) => [agent, String(url).trim()]),
+        .map(([agent, url]): [string, string] => {
+          const u = String(url).trim();
+          // Litbuy zastępujemy sponsorem LoveGoBuy (ten sam produkt 1688/Weidian).
+          if (/^litbuy$/i.test(agent.trim()) || /litbuy\.com/i.test(u)) {
+            return ["LoveGoBuy", convertLink(u, "LoveGoBuy")];
+          }
+          return [agent, u];
+        })
+        .filter(([agent, u]) => agent !== "LoveGoBuy" || /lovegobuy\.com/.test(u)),
     );
   } catch {
     return {};
