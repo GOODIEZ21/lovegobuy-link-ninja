@@ -1,17 +1,31 @@
+import type { ErrorComponentProps } from "@tanstack/react-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   Outlet,
   Link,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
-  type ErrorComponentProps,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { Header } from "@/components/Header";
+import { FloatingIsland } from "@/components/FloatingIsland";
+import { PromoModal } from "@/components/PromoModal";
+import { AutoTranslate } from "@/components/AutoTranslate";
+import { ScrollToTop } from "@/components/ScrollToTop";
+import { CosmicWeb } from "@/components/CosmicWeb";
+import { LanguageProvider } from "@/lib/i18n";
+import { CurrencyProvider } from "@/lib/currency";
+import { CartProvider } from "@/lib/cart";
+import { Toaster } from "@/components/ui/sonner";
+
+
+
 
 function NotFoundComponent() {
   return (
@@ -78,23 +92,32 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "PKMREPS — Agent & QC Finds" },
+      {
+        name: "description",
+        content: "Findsy, QC i linki do agentów w jednym miejscu.",
+      },
+      { property: "og:title", content: "PKMREPS — Agent & QC Finds" },
+      {
+        property: "og:description",
+        content: "Findsy, QC i linki do agentów w jednym miejscu.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
         rel: "stylesheet",
         href: appCss,
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=DM+Sans:wght@400;500;700&display=swap",
+      },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
     ],
   }),
+
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
@@ -103,7 +126,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="pl">
       <head>
         <HeadContent />
       </head>
@@ -117,11 +140,32 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const isPanel = pathname.startsWith("/admin") || pathname.startsWith("/seller");
 
   return (
     <QueryClientProvider client={queryClient}>
-      {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
-      <Outlet />
+      <LanguageProvider>
+        <CurrencyProvider>
+        <CartProvider>
+        <div className="relative isolate min-h-screen">
+          {!isPanel && <CosmicWeb dense={pathname === "/"} />}
+          {!isPanel && <Header />}
+          {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
+          <Outlet />
+          {!isPanel && <FloatingIsland />}
+          {!isPanel && <PromoModal />}
+
+          {!isPanel && <AutoTranslate />}
+          <ScrollToTop />
+          <Toaster richColors position="top-center" />
+
+        </div>
+        </CartProvider>
+        </CurrencyProvider>
+      </LanguageProvider>
     </QueryClientProvider>
   );
 }
+
+

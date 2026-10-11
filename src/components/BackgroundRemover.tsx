@@ -1,0 +1,11 @@
+import { useRef, useState } from 'react';
+import { Scissors, LoaderCircle, Check, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { streamImage } from '@/lib/stream-image';
+import { getPanelToken } from '@/lib/panelToken';
+import { uploadImages } from '@/lib/store';
+export function BackgroundRemover({ onSave }: { onSave: (url: string)=>void }) {
+ const ref=useRef<HTMLInputElement>(null);const [busy,setBusy]=useState(false);const [preview,setPreview]=useState('');const [final,setFinal]=useState(false);const [error,setError]=useState('');
+ const run=async(file:File)=>{setBusy(true);setError('');setPreview('');setFinal(false);try{const form=new FormData();form.set('image',file);await streamImage('/api/remove-background',form,(src,done)=>{setPreview(src);setFinal(done)},undefined,{Authorization:`Bearer ${getPanelToken()}`});}catch(e){setError(e instanceof Error?e.message:'Nie udało się usunąć tła.');setFinal(false)}finally{setBusy(false)}};
+ return <div className="mt-3"><input ref={ref} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={e=>{const file=e.target.files?.[0];if(file)void run(file);e.target.value=''}}/><Button size="sm" variant="outline" disabled={busy} onClick={()=>ref.current?.click()}>{busy?<LoaderCircle className="animate-spin"/>:<Scissors/>}{busy?'Usuwanie tła…':'Usuń tło AI'}</Button>{error&&<p className="mt-2 text-xs text-destructive" role="alert">{error}</p>}{preview&&<div className="mt-3"><img src={preview} alt="Podgląd zdjęcia bez tła" className={`h-40 w-40 rounded-lg border border-border object-contain transition-[filter] ${final?'blur-0':'blur-2xl'}`}/><div className="mt-2 flex gap-2">{final&&<Button size="sm" disabled={busy} onClick={async()=>{setBusy(true);try{const blob=await fetch(preview).then(r=>r.blob());const urls=await uploadImages([new File([blob],'bez-tla.png',{type:'image/png'})]);if(urls[0])onSave(urls[0]);setPreview('')}catch(e){setError(e instanceof Error?e.message:'Nie udało się zapisać zdjęcia.')}finally{setBusy(false)}}}><Check/>Zapisz zdjęcie</Button>}<Button size="sm" variant="ghost" disabled={busy} onClick={()=>setPreview('')}><X/>Odrzuć</Button></div></div>}</div>;
+}
