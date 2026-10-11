@@ -12,6 +12,7 @@ import { QcPhotos } from "@/components/QcPhotos";
 import { formatKg, productWeightKg } from "@/lib/weight";
 import { finderQcByProduct } from "@/lib/finderqc.functions";
 import { StableImage } from "@/components/StableImage";
+import { productAgentLink } from "@/lib/linkConverter";
 
 /** Interactive shopping modal: pick colorway + size, then buy through an agent. */
 export function ProductModal({
@@ -146,7 +147,7 @@ export function ProductModal({
                 </a>
               ) : null}
               {agents.map((a) => {
-                const href = product.agent_links?.[a.name] || a.referral_url;
+                const href = productAgentLink(product, a.name) || a.referral_url;
                 return (
                   <a
                     key={a.id}
