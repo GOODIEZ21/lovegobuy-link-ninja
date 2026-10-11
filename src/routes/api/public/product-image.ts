@@ -12,7 +12,7 @@ export const Route = createFileRoute("/api/public/product-image")({
         }
 
         let data: Blob | null = null;
-        if (process.env['SUPABASE_SERVICE_ROLE_KEY']) {
+        if ((process.env['SUPABASE_SERVICE_ROLE_KEY'] || process.env['DB_SERVICE_ROLE_KEY'])) {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const res = await supabaseAdmin.storage.from("product-images").download(path);
           data = res.error ? null : res.data;
