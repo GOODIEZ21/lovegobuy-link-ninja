@@ -12,14 +12,14 @@ export const Route = createFileRoute("/api/public/product-image")({
         }
 
         let data: Blob | null = null;
-        if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        if (process.env['SUPABASE_SERVICE_ROLE_KEY']) {
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
           const res = await supabaseAdmin.storage.from("product-images").download(path);
           data = res.error ? null : res.data;
-        } else if (process.env.SUPABASE_URL) {
+        } else if (process.env['SUPABASE_URL']) {
           // Brak klucza serwera — próbujemy publicznego adresu zdjęcia zamiast zwracać błąd.
           const r = await fetch(
-            `${process.env.SUPABASE_URL}/storage/v1/object/public/product-images/${path}`,
+            `${process.env['SUPABASE_URL']}/storage/v1/object/public/product-images/${path}`,
           ).catch(() => null);
           data = r?.ok ? await r.blob() : null;
         }
