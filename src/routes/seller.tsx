@@ -87,7 +87,7 @@ function SellerPage() {
           <h1 className="text-xl font-black">Panel sprzedawcy</h1>
           <input
             className={input}
-            placeholder="E-mail"
+            placeholder="Login"
             autoCapitalize="none"
             autoCorrect="off"
             value={user}
@@ -101,7 +101,6 @@ function SellerPage() {
             onChange={(e) => setPass(e.target.value)}
           />
           {err ? <p className="text-xs text-destructive">{err}</p> : null}
-          <Link to="/auth" className="block text-xs text-primary">Pierwsze logowanie / odzyskaj hasło</Link>
           <button className={`${btn} w-full`}>Zaloguj</button>
         </form>
       </div>
