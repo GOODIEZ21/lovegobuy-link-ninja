@@ -1364,6 +1364,10 @@ function ProductsTab({ tiktokOnly = false }: { tiktokOnly?: boolean } = {}) {
 
   const save = async () => {
     if (!form.title) return;
+    if (tiktokOnly && !form.tiktok_url.trim()) {
+      alert("W tej zakładce podaj link do filmu TikTok.");
+      return;
+    }
     // Uzupełnij brakujących agentów na podstawie dowolnego znanego linku produktu.
     const source =
       [form.store_url, ...Object.values(form.agent_links)].find((u) => extractSourceLink(u)) ?? "";
@@ -1501,7 +1505,7 @@ function ProductsTab({ tiktokOnly = false }: { tiktokOnly?: boolean } = {}) {
 
             <input
               className={input}
-              placeholder="Link do filmu TikTok (opcjonalnie)"
+              placeholder={tiktokOnly ? "Link do filmu TikTok (wymagany)" : "Link do filmu TikTok (opcjonalnie)"}
               value={form.tiktok_url}
               onChange={(e) => setForm({ ...form, tiktok_url: e.target.value })}
             />
