@@ -135,32 +135,40 @@ export const secureMutate = createServerFn({ method: "POST" })
       };
       if (data.op === "insert" || data.op === "upsert" || data.op === "update") {
         const login = String(safe['username'] ?? "").trim().toLowerCase();
-        if (!/^[a-z0-9._@+-]{3,80}$/.test(login)) return { error: "Login: min. 3 znaki, bez spacji." };
+        const loginOk = /^[a-z0-9._@+-]{3,80}$/.test(login);
         safe['username'] = login;
         const sellerRowId = data.id ?? (safe['id'] ? String(safe['id']) : null);
         const existing = sellerRowId ? await supabaseAdmin.from("sellers").select("id,user_id").eq("id", sellerRowId).maybeSingle() : null;
         if (!existing?.data) {
-          if (!password) return { error: "Ustaw hasło dla sprzedawcy." };
+          if (!loginOk) return { error: "Podaj login sprzedawcy (min. 3 znaki, bez spacji)." };
+          if (!password) return { error: "Ustaw hasło dla sprzedawcy (min. 8 znaków)." };
           const userId = await setAccount(login, null);
-          if (!userId) return { error: "Nie udało się utworzyć konta sprzedawcy." };
+          if (!userId) return { error: "Nie udało się utworzyć konta sprzedawcy — ten login może być zajęty." };
           const { data: seller, error: sellerError } = await supabaseAdmin.from("sellers").insert({ ...safe, name: String(safe['name'] ?? ""), slug: String(safe['slug'] ?? ""), user_id: userId }).select("id").single();
-          if (sellerError || !seller) return { error: "Nie udało się zapisać sklepu." };
+          if (sellerError || !seller) {
+            console.error("seller insert failed", sellerError?.message);
+            return { error: sellerError?.code === "23505" ? "Sklep o takim adresie (slug) już istnieje." : "Nie udało się zapisać sklepu." };
+          }
           await supabaseAdmin.from("user_roles").delete().eq("user_id", userId).eq("role", "seller");
           const { error: roleError } = await supabaseAdmin.from("user_roles").insert({ user_id: userId, seller_id: seller.id, role: "seller" });
           return { error: roleError ? "Nie udało się nadać dostępu do sklepu." : null };
         }
         const oldUserId = (existing.data as { user_id: string | null }).user_id;
-        if (password || !oldUserId) {
-          if (!password) return { error: "Ustaw hasło dla sprzedawcy." };
+        if (password) {
+          if (!loginOk) return { error: "Podaj login sprzedawcy (min. 3 znaki, bez spacji)." };
           const userId = await setAccount(login, oldUserId);
-          if (!userId) return { error: "Nie udało się zmienić loginu/hasła." };
+          if (!userId) return { error: "Nie udało się zmienić loginu/hasła — ten login może być zajęty." };
           safe['user_id'] = userId;
           if (!oldUserId) {
             await supabaseAdmin.from("user_roles").delete().eq("user_id", userId).eq("role", "seller");
             await supabaseAdmin.from("user_roles").insert({ user_id: userId, seller_id: existing.data.id, role: "seller" });
           }
-        } else {
+        } else if (oldUserId) {
+          if (!loginOk) return { error: "Podaj login sprzedawcy (min. 3 znaki, bez spacji)." };
           await supabaseAdmin.auth.admin.updateUserById(oldUserId, { email: sellerLoginEmail(login), email_confirm: true });
+        } else if (!loginOk) {
+          // Sklep bez konta: zapisujemy logo, opis itp., login można nadać później.
+          safe['username'] = null;
         }
       }
       data.values = safe;
@@ -186,6 +194,7 @@ export const secureMutate = createServerFn({ method: "POST" })
       ({ error } = await table.update(values).eq("id", data.id));
     else ({ error } = await table.delete().eq("id", data.id));
 
+    if (error) console.error(`secureMutate ${data.table}/${data.op} failed`, error.message);
     return { error: error ? "Operation failed" : null };
   });
 
