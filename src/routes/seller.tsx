@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { panelDb } from "@/lib/panelDb";
 import { clearPanelToken, getPanelToken, setPanelToken } from "@/lib/panelToken";
 import { sellerLogin } from "@/lib/secure.functions";
+import { sellerLoginEmail } from "@/lib/sellerLogin";
 import { ProductCard } from "@/components/ProductCard";
 import { ImageUploader } from "@/components/ImageUploader";
 import { DEFAULT_SHIRT_SIZES, isShirt } from "@/lib/csvImport";
@@ -59,8 +60,8 @@ function SellerPage() {
 
   const login = async () => {
     setErr("");
-    const { data: auth, error } = await supabase.auth.signInWithPassword({ email: user.trim(), password: pass });
-    if (error || !auth.session) { setErr(error?.message ?? "Potwierdź adres e-mail."); return; }
+    const { data: auth, error } = await supabase.auth.signInWithPassword({ email: sellerLoginEmail(user), password: pass });
+    if (error || !auth.session) { setErr("Nieprawidłowy login lub hasło."); return; }
     const res = await sellerLogin({
       data: { token: auth.session.access_token },
     }).catch(() => ({ ok: false as const }));
@@ -86,7 +87,7 @@ function SellerPage() {
           <h1 className="text-xl font-black">Panel sprzedawcy</h1>
           <input
             className={input}
-            placeholder="E-mail"
+            placeholder="Login"
             autoCapitalize="none"
             autoCorrect="off"
             value={user}
@@ -100,7 +101,6 @@ function SellerPage() {
             onChange={(e) => setPass(e.target.value)}
           />
           {err ? <p className="text-xs text-destructive">{err}</p> : null}
-          <Link to="/auth" className="block text-xs text-primary">Pierwsze logowanie / odzyskaj hasło</Link>
           <button className={`${btn} w-full`}>Zaloguj</button>
         </form>
       </div>

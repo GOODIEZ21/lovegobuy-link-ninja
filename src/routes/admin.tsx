@@ -1891,8 +1891,9 @@ function SellersTab() {
 
   const save = async () => {
     if (!form.name.trim()) return setMsg("Podaj nazwę sklepu.");
-    if (!form.username.trim()) return setMsg("Podaj login sprzedawcy.");
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.username.trim())) return setMsg("Podaj adres e-mail sprzedawcy.");
+    if (!/^[a-zA-Z0-9._@+-]{3,80}$/.test(form.username.trim())) return setMsg("Podaj login sprzedawcy (min. 3 znaki, bez spacji).");
+    if (!form.id && form.password.length < 8) return setMsg("Ustaw hasło sprzedawcy (min. 8 znaków).");
+    if (form.password && form.password.length < 8) return setMsg("Hasło musi mieć minimum 8 znaków.");
     setMsg("");
     const slug =
       (form.slug || form.name).trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
@@ -1906,7 +1907,7 @@ function SellersTab() {
       external_url: form.external_url,
       active: form.active,
     };
-    const withPass = base;
+    const withPass = form.password ? { ...base, password: form.password } : base;
     // Upsert po id: konta wbudowane w kod nie mają jeszcze wiersza w bazie,
     // więc zwykły update nic by nie zmienił i zapis wyglądałby na udany.
     const { error } = form.id
@@ -1938,11 +1939,22 @@ function SellersTab() {
           />
           <input
             className={input}
-            placeholder="E-mail sprzedawcy"
+            placeholder="Login sprzedawcy (np. momo)"
             autoCapitalize="none"
             value={form.username}
             onChange={(e) => setForm({ ...form, username: e.target.value })}
           />
+          <input
+            className={input}
+            type="text"
+            autoComplete="new-password"
+            placeholder={form.id ? "Nowe hasło (zostaw puste, by nie zmieniać)" : "Hasło sprzedawcy (min. 8 znaków)"}
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+          />
+          <p className="text-[11px] text-muted-foreground">
+            Sprzedawca loguje się tym loginem i hasłem na stronie /seller.
+          </p>
 
           <input
             className={input}
