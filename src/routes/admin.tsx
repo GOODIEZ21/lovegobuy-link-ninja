@@ -85,6 +85,7 @@ function AdminPage() {
 
     | "categories"
     | "products"
+    | "tiktok"
     | "import"
     | "sellers"
     | "shipping"
@@ -179,6 +180,7 @@ function AdminPage() {
     ["agents", "Agenci", "🤝"],
     ["categories", "Kategorie", "🗂️"],
     ["products", "Produkty", "👟"],
+    ["tiktok", "Linki z TikToka", "🎵"],
     ["import", "Import CSV", "📥"],
     ["sellers", "Sprzedawcy", "🏪"],
     ["shipping", "Wysyłki", "📦"],
@@ -240,7 +242,8 @@ function AdminPage() {
       {tab === "promos" && <PromosTab />}
       {tab === "agents" && <AgentsTab />}
       {tab === "categories" && <CategoriesTab />}
-      {tab === "products" && <ProductsTab />}
+      {tab === "products" && <ProductsTab key="all" />}
+      {tab === "tiktok" && <ProductsTab key="tiktok" tiktokOnly />}
       {tab === "import" && <ImportTab />}
       {tab === "sellers" && <SellersTab />}
       {tab === "shipping" && <ShippingTab />}
@@ -1199,7 +1202,7 @@ function MediaSync() {
   );
 }
 
-function ProductsTab() {
+function ProductsTab({ tiktokOnly = false }: { tiktokOnly?: boolean } = {}) {
 
   const { data: products } = useProducts();
   const { data: categories } = useCategories();
@@ -1268,7 +1271,9 @@ function ProductsTab() {
 
   const matched = useMemo(() => {
     const list = ordered.filter((p) =>
-      q
+      tiktokOnly && !(p.tiktok_url ?? "").trim()
+        ? false
+        : q
         ? [p.title, p.category, p.batch, p.store_name].some((v) =>
             (v ?? "").toLowerCase().includes(q),
           )
@@ -1359,6 +1364,10 @@ function ProductsTab() {
 
   const save = async () => {
     if (!form.title) return;
+    if (tiktokOnly && !form.tiktok_url.trim()) {
+      alert("W tej zakładce podaj link do filmu TikTok.");
+      return;
+    }
     // Uzupełnij brakujących agentów na podstawie dowolnego znanego linku produktu.
     const source =
       [form.store_url, ...Object.values(form.agent_links)].find((u) => extractSourceLink(u)) ?? "";
@@ -1496,7 +1505,7 @@ function ProductsTab() {
 
             <input
               className={input}
-              placeholder="Link do filmu TikTok (opcjonalnie)"
+              placeholder={tiktokOnly ? "Link do filmu TikTok (wymagany)" : "Link do filmu TikTok (opcjonalnie)"}
               value={form.tiktok_url}
               onChange={(e) => setForm({ ...form, tiktok_url: e.target.value })}
             />
