@@ -85,6 +85,7 @@ function AdminPage() {
 
     | "categories"
     | "products"
+    | "tiktok"
     | "import"
     | "sellers"
     | "shipping"
@@ -179,6 +180,7 @@ function AdminPage() {
     ["agents", "Agenci", "🤝"],
     ["categories", "Kategorie", "🗂️"],
     ["products", "Produkty", "👟"],
+    ["tiktok", "Linki z TikToka", "🎵"],
     ["import", "Import CSV", "📥"],
     ["sellers", "Sprzedawcy", "🏪"],
     ["shipping", "Wysyłki", "📦"],
@@ -240,7 +242,8 @@ function AdminPage() {
       {tab === "promos" && <PromosTab />}
       {tab === "agents" && <AgentsTab />}
       {tab === "categories" && <CategoriesTab />}
-      {tab === "products" && <ProductsTab />}
+      {tab === "products" && <ProductsTab key="all" />}
+      {tab === "tiktok" && <ProductsTab key="tiktok" tiktokOnly />}
       {tab === "import" && <ImportTab />}
       {tab === "sellers" && <SellersTab />}
       {tab === "shipping" && <ShippingTab />}
@@ -1199,7 +1202,7 @@ function MediaSync() {
   );
 }
 
-function ProductsTab() {
+function ProductsTab({ tiktokOnly = false }: { tiktokOnly?: boolean } = {}) {
 
   const { data: products } = useProducts();
   const { data: categories } = useCategories();
@@ -1268,7 +1271,9 @@ function ProductsTab() {
 
   const matched = useMemo(() => {
     const list = ordered.filter((p) =>
-      q
+      tiktokOnly && !(p.tiktok_url ?? "").trim()
+        ? false
+        : q
         ? [p.title, p.category, p.batch, p.store_name].some((v) =>
             (v ?? "").toLowerCase().includes(q),
           )
