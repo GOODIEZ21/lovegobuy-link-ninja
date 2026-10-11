@@ -25,8 +25,10 @@ async function run(
   if (result.error) {
     toast.error(
       result.error === "Unauthorized"
-        ? "Brak uprawnień — zaloguj się ponownie."
-        : "Nie udało się zapisać. Sprawdź połączenie strony z bazą i spróbuj ponownie.",
+        ? "Sesja wygasła — wyloguj się i zaloguj ponownie."
+        : result.error === "Operation failed"
+          ? "Nie udało się zapisać. Spróbuj ponownie."
+          : result.error,
     );
   } else {
     toast.success("Zmiany zapisane.");
