@@ -21,3 +21,7 @@
 - [x] Products CSV: Litbuy links → LoveGoBuy.
 - [x] Whole-site automatic translation for every language.
 - [ ] Seller login with username + password only (no email) — not started yet.
+- [x] Connect hosted backend (Lovable Cloud), recreate secure schema, private photo bucket and email sign-in.
+- [x] Import records: 439 products, 3 agents, 18 categories, 19 settings, 1 seller, 4 social links, 3 shipping lines.
+- [x] Copy product photos and social icons into the project's own private photo storage; no links left to the old backend.
+- [x] Verify administrator sign-in, seller creation in the panel and seller sign-in at /seller.
