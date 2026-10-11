@@ -255,6 +255,10 @@ export const useProducts = () =>
         data.push(...((page ?? []) as Tables<"products">[]));
         if (!page || page.length < 1000) break;
       }
+      // Produkty z importu (plik CSV) — dokładamy te, których nie ma jeszcze w bazie.
+      const { default: imported } = await import("@/data/imported-products.json");
+      const have = new Set(data.map((p) => p.id));
+      for (const p of imported as unknown as Tables<"products">[]) if (!have.has(p.id)) data.push(p);
       return (data ?? []).sort((a,b) => Number(Boolean(b.image_url || b.images?.length || b.qc_images?.length)) - Number(Boolean(a.image_url || a.images?.length || a.qc_images?.length))).map((p) => {
         const main = p.image_url || p.images?.find(Boolean) || p.qc_images?.find(Boolean) || null;
         // Galeria bywa zduplikowana (to samo zdjęcie kilka razy / kopia głównego).
