@@ -120,7 +120,7 @@ export const secureMutate = createServerFn({ method: "POST" })
       const setAccount = async (login: string, currentUserId: string | null) => {
         const email = sellerLoginEmail(login);
         if (currentUserId) {
-          const { error } = await supabaseAdmin.auth.admin.updateUserById(currentUserId, { email, password: password || undefined, email_confirm: true });
+          const { error } = await supabaseAdmin.auth.admin.updateUserById(currentUserId, password ? { email, password, email_confirm: true } : { email, email_confirm: true });
           return error ? null : currentUserId;
         }
         const { data: created, error } = await supabaseAdmin.auth.admin.createUser({ email, password, email_confirm: true });
