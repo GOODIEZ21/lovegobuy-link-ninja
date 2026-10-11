@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { panelDb } from "@/lib/panelDb";
 import { clearPanelToken, getPanelToken, setPanelToken } from "@/lib/panelToken";
 import { sellerLogin } from "@/lib/secure.functions";
+import { sellerLoginEmail } from "@/lib/sellerLogin";
 import { ProductCard } from "@/components/ProductCard";
 import { ImageUploader } from "@/components/ImageUploader";
 import { DEFAULT_SHIRT_SIZES, isShirt } from "@/lib/csvImport";
@@ -59,8 +60,8 @@ function SellerPage() {
 
   const login = async () => {
     setErr("");
-    const { data: auth, error } = await supabase.auth.signInWithPassword({ email: user.trim(), password: pass });
-    if (error || !auth.session) { setErr(error?.message ?? "Potwierdź adres e-mail."); return; }
+    const { data: auth, error } = await supabase.auth.signInWithPassword({ email: sellerLoginEmail(user), password: pass });
+    if (error || !auth.session) { setErr("Nieprawidłowy login lub hasło."); return; }
     const res = await sellerLogin({
       data: { token: auth.session.access_token },
     }).catch(() => ({ ok: false as const }));
