@@ -1,24 +1,23 @@
-import { createFileRoute } from "@tanstack/react-router";
-
-// No head() here: the home route inherits title/description/og/twitter from
-// __root.tsx, and ships no og:image so serve-time hosting can inject the
-// project's social preview (explicit og:image or latest screenshot).
-export const Route = createFileRoute("/")({
-  component: Index,
-});
-
-// IMPORTANT: Replace this placeholder. See ./README.md for routing conventions.
-function Index() {
-  return (
-    <div
-      className="flex min-h-screen items-center justify-center"
-      style={{ backgroundColor: "#fcfbf8" }}
-    >
-      <img
-        data-lovable-blank-page-placeholder="REMOVE_THIS"
-        src="https://cdn.gpteng.co/blank-app-v1.svg"
-        alt="Your app will live here!"
-      />
-    </div>
-  );
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { useMemo, useState } from 'react';
+import { ArrowRight, Search, Package, ScanSearch, Link2, ChevronRight } from 'lucide-react';
+import { categoryEmoji } from '@/lib/categoryEmoji';
+import { ProductCard } from '@/components/ProductCard';
+import { ProductModal } from '@/components/ProductModal';
+import { useProducts, useAgents, useCategories, useSettings, type Product } from '@/lib/store';
+import { Button } from '@/components/ui/button';
+import offerImage from '@/assets/shipping-offer-web.jpg';
+export const Route=createFileRoute('/')({head:()=>({meta:[{title:'PKMREPS — Twoje źródło lepszych findsów'},{name:'description',content:'Przeglądaj produkty, zdjęcia QC, kalkulator dostawy i linki agentów PKMREPS.'},{property:'og:title',content:'PKMREPS — Twoje źródło lepszych findsów'},{property:'og:description',content:'Produkty, QC i dostawa z kodem PKMR w jednym miejscu.'},{property:'og:type',content:'website'},{name:'twitter:card',content:'summary_large_image'}]}),component:Index});
+function Index(){
+ const {data:products,isPending,isError}=useProducts(); const {data:agents}=useAgents();const {data:categories}=useCategories();
+ const {data:settings}=useSettings();
+ const [q,setQ]=useState('');const [cat,setCat]=useState('');const [min,setMin]=useState('');const [max,setMax]=useState('');const [best,setBest]=useState(false);const [women,setWomen]=useState(false);const [limit,setLimit]=useState(12);const [detail,setDetail]=useState<Product|null>(null);
+ const all=useMemo(()=>(products??[]).filter(p=>(!p.seller_id||p.show_on_home)&&(!cat||p.category===cat)&&(!q||`${p.title} ${p.batch} ${p.category}`.toLowerCase().includes(q.toLowerCase()))&&(!min||p.price>=Number(min))&&(!max||p.price<=Number(max))&&(!best||`${p.quality} ${p.batch}`.toLowerCase().includes('best'))&&(!women||p.for_women)),[products,q,cat,min,max,best,women]);
+ const choose=(value:string)=>{setCat(value===cat?'':value);setLimit(12)};
+ return <main className="home-layout"><section className="finder-intro"><div><p className="eyebrow">PKMREPS / FIND ENGINE</p><h1 className="finder-heading">{settings?.["home_title"]||<>Twoje źródło<br/>lepszych <span className="text-primary">findsów.</span></>}</h1><p className="mt-5 text-sm leading-relaxed text-muted-foreground">{settings?.["home_description"]||"Sprawdzone linki, batch check i QC photos — wszystko przed kupnem."}</p><form className="finder-search" onSubmit={e=>{e.preventDefault();document.getElementById('produkty')?.scrollIntoView({behavior:'smooth'})}}><Search size={16} className="text-muted-foreground"/><input aria-label="Szukaj produktów" placeholder="Czego szukasz?" value={q} onChange={e=>{setQ(e.target.value);setLimit(12)}}/><Button size="icon" type="submit" className="rounded-full" aria-label="Wyszukaj"><ArrowRight/></Button></form><div className="tool-tiles">{[{label:'Tracking',subtitle:'Sprawdź swoją paczkę',icon:Package,hash:'tracking'},{label:'QC Finder',subtitle:'Zdjęcia przed zakupem',icon:ScanSearch,hash:'qc-finder'},{label:'Konwerter linków',subtitle:'Jeden link. Twój agent.',icon:Link2,hash:'converter'}].map(tool=><Link key={tool.hash} to="/poradnik" hash={tool.hash} className="tool-tile"><tool.icon size={19} className="shrink-0 text-primary"/><span className="min-w-0"><span className="block text-[13px] font-semibold leading-tight">{tool.label}</span><span className="block truncate text-[11px] text-muted-foreground">{tool.subtitle}</span></span><ArrowRight size={14} className="ml-auto shrink-0 text-muted-foreground"/></Link>)}</div></div><aside className="shipping-offer"><img src={settings?.["promo_banner_url"]||offerImage} alt="Ubrania, buty i paczka gotowa do wysyłki" width={1200} height={1000}/><div className="shipping-offer-content"><span className="eyebrow text-foreground">TWÓJ NASTĘPNY HAUL</span><h2>{settings?.["home_offer_title"]||<>Mniej za dostawę.<br/>Więcej na findsy.</>}</h2><p>{settings?.["home_offer_description"]||<>Odbierz −40% na dostawę<br/>i skompletuj swój haul.</>}</p><span className="offer-code">KOD: {settings?.["promo_code"]||"PKMR"}</span><br/><Button variant="offer" size="sm" asChild><a href={settings?.["primary_agent_url"]||"/agenci"}>{settings?.["home_button_label"]||"Odbierz"} <ArrowRight/></a></Button></div></aside></section>
+ <section id="kategorie" className="scroll-mt-28 border-t border-border pt-8 mb-9"><p className="eyebrow">KATEGORIE</p><div className="category-strip mt-3"><Button variant={!cat?'default':'chip'} className="category-chip" aria-pressed={!cat} onClick={()=>{setCat('');setLimit(12)}}><span aria-hidden="true">{categoryEmoji('Wszystkie')}</span>Wszystkie</Button>{(categories?.length?categories:[{id:'1',name:'Bluzy'},{id:'2',name:'Spodnie'},{id:'3',name:'Koszulki'},{id:'4',name:'Buty'},{id:'5',name:'Akcesoria'}]).map(c=><Button key={c.id} variant={cat===c.name?'default':'chip'} className="category-chip" aria-pressed={cat===c.name} onClick={()=>choose(c.name)}><span aria-hidden="true">{categoryEmoji(c.name)}</span>{c.name}</Button>)}</div></section>
+ <section id="produkty" className="scroll-mt-28"><div className="catalog-heading"><div><p className="eyebrow">ŚWIEŻO DODANE</p><h2>Najnowsze itemy<span className="text-primary">.</span></h2><p className="mt-1 text-xs text-muted-foreground">Findsy warte miejsca w twoim haulu.</p></div></div>
+ <div className="catalog-filters"><label className="text-xs text-muted-foreground">Cena od <input type="number" min="0" value={min} onChange={e=>setMin(e.target.value)} placeholder="min" aria-label="Cena minimalna"/></label><label className="text-xs text-muted-foreground">do <input type="number" min="0" value={max} onChange={e=>setMax(e.target.value)} placeholder="max" aria-label="Cena maksymalna"/></label><Button variant={best?'default':'chip'} size="sm" className="category-chip" onClick={()=>setBest(!best)} aria-pressed={best}>Best batch</Button><Button variant={women?'default':'chip'} size="sm" className="category-chip" onClick={()=>setWomen(!women)} aria-pressed={women}>Girl Zone</Button></div>
+ {isPending?<div className="empty-catalog">Wczytywanie produktów…</div>:isError?<div className="empty-catalog">Nie udało się wczytać produktów.</div>:all.length?<><div className="product-grid">{all.slice(0,limit).map(p=><ProductCard key={p.id} product={p} onDetails={setDetail}/>)}</div>{limit<all.length&&<div className="mt-8 text-center"><Button variant="chip" onClick={()=>setLimit(limit+12)}>Pokaż więcej <ChevronRight/></Button></div>}</>:<div className="empty-catalog"><Package size={28} className="mx-auto mb-4 text-primary"/><p className="font-medium text-foreground">{products?.length?'Brak produktów dla wybranych filtrów':'Katalog czeka na pierwsze findsy'}</p><p className="mt-2 text-xs">{products?.length?'Zmień kategorię lub wyszukiwane hasło.':'Produkty pojawią się tutaj po dodaniu do katalogu.'}</p></div>}</section>
+ <footer className="home-footer"><span>PKMREPS · Find your next favourite.</span><Link to="/poradnik">Poradnik zakupowy ↗</Link></footer>{detail&&<ProductModal product={detail} agents={agents??[]} onClose={()=>setDetail(null)}/>}</main>
 }
