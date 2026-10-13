@@ -76,7 +76,7 @@ export function PromoModal() {
     return () => clearInterval(i);
   }, [open]);
 
-  const list = useMemo(() => (agents ?? []).filter((a) => a.referral_url), [agents]);
+  const list = useMemo(() => (agents ?? []).filter((a) => a.referral_url).sort((a, b) => Number(!/lovegobuy/i.test(a.name)) - Number(!/lovegobuy/i.test(b.name))), [agents]);
   const main = list.find((a) => promoSlug(a.name) === "lovegobuy") ?? list[0] ?? null;
   const agent = list.find((a) => a.id === agentId) ?? main;
 
