@@ -180,6 +180,16 @@ export function PromoModal() {
           {t("promo.cta")}
         </a>
 
+        <a
+          href="https://www.tiktok.com/@pkmr3ps"
+          target="_blank"
+          rel="noreferrer"
+          data-no-translate
+          className="mt-2 block rounded-2xl border border-border bg-surface px-6 py-3 text-center text-sm font-extrabold tracking-wide text-foreground transition-transform hover:scale-[1.02]"
+        >
+          🎵 TIKTOK @pkmr3ps
+        </a>
+
         <button
           onClick={() => setOpen(false)}
           className="mt-2 w-full text-center text-[11px] text-muted-foreground hover:text-foreground"
