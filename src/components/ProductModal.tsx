@@ -146,7 +146,9 @@ export function ProductModal({
                   {t("product.enterStore")} {product.store_name || "Yupoo"} →
                 </a>
               ) : null}
-              {agents.map((a) => {
+              {[...agents]
+                .sort((x, y) => Number(!/lovegobuy/i.test(x.name)) - Number(!/lovegobuy/i.test(y.name)))
+                .map((a) => {
                 const href = productAgentLink(product, a.name) || a.referral_url;
                 return (
                   <a
