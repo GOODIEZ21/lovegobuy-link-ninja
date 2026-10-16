@@ -25,13 +25,23 @@ export type TrackResult = {
   estimated?: boolean;
 };
 
-/** Szacunek na podstawie formatu numeru, gdy przewoźnik nie udostępnia danych. */
+/** Szacunek na podstawie formatu numeru (jak na 17track), gdy brak danych na żywo. Zakresy w dniach roboczych. */
 function guessFromCode(code: string) {
-  const c = code.toUpperCase();
+  const c = code.toUpperCase().replace(/\s+/g, "");
   if (/^CJ/.test(c)) return { source: "CJPacket", stageKey: "s2", min: 9, max: 15 };
   if (/^(YT|YUN)/.test(c)) return { source: "Yun Express", stageKey: "s2", min: 8, max: 14 };
   if (/^(SF|SFC)/.test(c)) return { source: "SF Express", stageKey: "s2", min: 5, max: 9 };
   if (/^(LP|UF|GV|SY|4PX)/.test(c)) return { source: "Cainiao / 4PX", stageKey: "s2", min: 10, max: 16 };
+  if (/^(LW|LK|LN|LX|LY)/.test(c) && /CN$/.test(c)) return { source: "Cainiao Standard", stageKey: "s2", min: 9, max: 16 };
+  if (/^EV\d/.test(c)) return { source: "EMS / China Post EMS", stageKey: "s2", min: 7, max: 12 };
+  if (/^(1Z|H\d{10})/.test(c)) return { source: "UPS / DHL", stageKey: "s2", min: 5, max: 9 };
+  if (/^(3S|JJD|JD)/.test(c)) return { source: "DHL eCommerce", stageKey: "s2", min: 8, max: 14 };
+  if (/^7\d{11}$/.test(c)) return { source: "FedEx", stageKey: "s2", min: 5, max: 9 };
+  if (/^(RV|RA|RB|RC|RE|RI|RM|RN|RO|RP|RS|RU|RW|RX|RY|RZ)/.test(c) && /CN$/.test(c))
+    return { source: "China Post Registered", stageKey: "s2", min: 12, max: 20 };
+  if (/^(UB|UC|UD|UE|UG|UH)/.test(c) && /CN$/.test(c)) return { source: "China Post Ordinary", stageKey: "s2", min: 15, max: 25 };
+  if (/NL$/.test(c)) return { source: "PostNL", stageKey: "s4", min: 3, max: 6 };
+  if (/DE$/.test(c)) return { source: "Deutsche Post / DHL", stageKey: "s4", min: 3, max: 6 };
   if (/(PL|PLA)$/.test(c) || /^(6|00)\d{9,}$/.test(c)) return { source: "Kurier PL", stageKey: "s5", min: 1, max: 2 };
   if (/CN$/.test(c)) return { source: "China Post", stageKey: "s2", min: 12, max: 20 };
   return { source: "Auto-detect", stageKey: "s3", min: 6, max: 12 };
