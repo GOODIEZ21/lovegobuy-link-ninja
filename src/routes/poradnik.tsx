@@ -106,6 +106,7 @@ function PackageTracker() {
             {t("guide.trackEta")}
           </p>
           <p className="mt-1 text-lg font-extrabold text-primary">{eta}</p>
+          <p className="text-[10px] text-muted-foreground">{t("guide.trackWorkdays")}</p>
           {(result.maxDays ?? 0) > 0 ? (
             <p className="mt-1 text-[11px] text-muted-foreground">
               {t("guide.trackArrival")}: {addDays(result.minDays ?? 0)}
