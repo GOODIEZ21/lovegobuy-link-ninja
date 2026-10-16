@@ -1,5 +1,4 @@
 # RENJP
-- [ ] Refine homepage presentation: remove decorative noise, improve catalogue hierarchy and verify desktop/mobile browsing.
 - [x] Replace homepage promotion artwork with matching colors and a right-side −25% tag; preserve copy and remove background-logo uploads.
 - [x] Configure administrator login/password securely and verify sign-in.
 - [x] Add screenshot categories and match category emojis in the catalogue and management panel.

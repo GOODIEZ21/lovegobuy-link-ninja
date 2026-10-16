@@ -69,7 +69,7 @@ export function Header() {
   const logo = settings?.["agent_logo_url"];
 
   return (
-    <header className="site-header sticky top-0 z-40 px-3 pt-3 sm:px-6">
+    <header className="sticky top-0 z-40 px-3 pt-3 sm:px-6">
       {/* Na desktopie wyspa rozciąga się do szerokości menu (dłuższe tłumaczenia), zamiast nachodzić na logo. */}
       <div className="mx-auto flex w-full max-w-7xl flex-col gap-3 rounded-lg border border-border bg-surface-deep/95 px-4 py-3 shadow-2xl backdrop-blur-xl sm:px-6 lg:w-fit lg:min-w-[min(100%,80rem)] lg:max-w-full">
         <div className="flex items-center gap-3">

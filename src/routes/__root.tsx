@@ -148,8 +148,8 @@ function RootComponent() {
       <LanguageProvider>
         <CurrencyProvider>
         <CartProvider>
-        <div className={`relative isolate min-h-screen ${pathname === "/" ? "home-shell" : ""}`}>
-          {!isPanel && pathname !== "/" && <CosmicWeb />}
+        <div className="relative isolate min-h-screen">
+          {!isPanel && <CosmicWeb dense={pathname === "/"} />}
           {!isPanel && <Header />}
           {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
           <Outlet />
