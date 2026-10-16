@@ -108,7 +108,7 @@ export const trackParcel = createServerFn({ method: "POST" })
     return { code: code.slice(0, 64) };
   })
   .handler(async ({ data }): Promise<TrackResult> => {
-    let hit: { source: string; lastStatus: string; lastTime: string } | null = null;
+    let hit: { source: string; lastStatus: string; lastTime: string; history?: string } | null = null;
     for (const fn of [fromCainiao, fromParcelsApp]) {
       try {
         hit = await fn(data.code);
@@ -131,7 +131,7 @@ export const trackParcel = createServerFn({ method: "POST" })
     }
 
 
-    const stage = classify(`${hit.lastStatus}`);
+    const stage = classify(`${hit.lastStatus} | ${hit.history ?? ""}`);
     return {
       ok: true,
       code: data.code,
