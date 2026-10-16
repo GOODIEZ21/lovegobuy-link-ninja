@@ -69,10 +69,16 @@ async function fromCainiao(code: string) {
   const list = mod?.detailList;
   if (!Array.isArray(list) || list.length === 0) return null;
   const last = list[0];
+  // Wszystkie zdarzenia — etap liczymy z najbardziej zaawansowanego, nie tylko ostatniego.
+  const history = list
+    .map((e: any) => String(e?.desc ?? e?.standerdDesc ?? ""))
+    .filter(Boolean)
+    .join(" | ");
   return {
     source: "Cainiao / 17track network",
     lastStatus: String(last?.desc ?? last?.standerdDesc ?? "").trim(),
     lastTime: String(last?.time ?? last?.timeStr ?? "").trim(),
+    history,
   };
 }
 
