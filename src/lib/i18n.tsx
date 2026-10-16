@@ -159,8 +159,12 @@ export const DICT: Record<string, Partial<Record<Lang, string>> & { pl: string; 
   },
 
   "guide.trackOpen": { pl: "Otwórz w", en: "Open in" },
-  "guide.trackDay": { pl: "dzień", en: "day" },
-  "guide.trackDays": { pl: "dni", en: "days" },
+  "guide.trackDay": { pl: "dzień roboczy", en: "business day" },
+  "guide.trackDays": { pl: "dni roboczych", en: "business days" },
+  "guide.trackWorkdays": {
+    pl: "Podajemy czas w dniach roboczych (bez weekendów i świąt).",
+    en: "Time is given in business days (excluding weekends and holidays).",
+  },
   "guide.trackToday": { pl: "Paczka jest już u Ciebie 🎉", en: "Your parcel has arrived 🎉" },
   "guide.parcel": { pl: "Paczka", en: "Parcel" },
 
