@@ -265,3 +265,11 @@
 .shipping-offer h2 { max-width:70%; }
 .shipping-offer p { max-width:60%; }
 @media(max-width:640px) { .shipping-offer { min-height:290px; aspect-ratio:1.22; } .finder-intro { width:100%; } .header-inner { gap:12px; } .header-inner > .relative { margin-left:auto; } .brand-mark { font-size:17px; } .header-inner > .relative .inline-flex:last-of-type { font-size:10px; padding-inline:8px; } }
+
+/* Homepage refinement — spokojniej, mniej ozdobników */
+.home-layout .finder-heading { letter-spacing:-0.025em; font-weight:600; }
+.home-layout .eyebrow { letter-spacing:0.14em; color:var(--muted-foreground); font-weight:600; }
+.home-layout .shipping-offer { box-shadow:none; border:1px solid var(--border); }
+.home-layout .tool-tile:hover { transform:none; background:var(--secondary); }
+.home-layout .catalog-heading h2 { letter-spacing:-0.02em; font-weight:600; }
+.home-layout .product-grid { gap:20px; }
