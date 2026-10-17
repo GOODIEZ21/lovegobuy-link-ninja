@@ -88,7 +88,7 @@ export function StickersBackground({customOnly=false}:{customOnly?:boolean}) {
               height: size,
               transform: `translate(-50%, -50%) rotate(${rotate}deg)`,
             }}
-            className="absolute select-none rounded-2xl object-contain opacity-20"
+            className="absolute select-none rounded-2xl object-contain opacity-[0.06] grayscale"
           />
         );
       })}
